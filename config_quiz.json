@@ -1,0 +1,71 @@
+{
+	"WWW_FOLDER":"client_quiz",
+	"ITEM_FOLDER":"items",
+	"QUIZ_FOLDER":"quiz",
+	"OVERLAY_FOLDER":"overlay",
+	
+	"SHARED_WWW_FOLDER":"client_shared",
+	"UPLOAD_FOLDER":"upload",
+	
+	"BACKUP_READ_STATUS_FOLDER":"backup/read_status",
+	"BACKUP_SCORE_FOLDER":"backup/score",
+	
+	"TIMER_START":"tStart",
+	"TIMER_RESUME":"tResume",
+	"TIMER_PAUSE":"tPause",
+	"TIMER_CLEAR":"tClear",
+	
+	"EVENT_PRESET_TIMER":"presetTimer",
+	
+	"EVENT_UPDATE_SCORE":"updateScore",
+	"EVENT_UPDATE_MORE_INFO":"moreInfo",
+	"EVENT_UPDATE_TIMER":"timer",
+	"EVENT_UPDATE_READ_STATUS":"EVENT_UPDATE_READ_STATUS",
+	
+	"EVENT_SET_TEAM_NAME":"setTeamName",
+	"EVENT_SET_BACKUP":"setBackup",
+	"EVENT_SET_OVERLAY":"setOvl",
+	
+	"EVENT_CLEAR_BACKUP":"clearBackup",
+	"EVENT_CHANGE_SLIDE":"slide",
+	"EVENT_ERROR_MSG":"errMsg",
+	"EVENT_LOG":"log",
+	
+	"EVENT_CONN_PING":"connPing",
+	"EVENT_CONN_ALERT":"connAlert",
+	
+	"CLIENT_TABLET":"/index.html",
+	"CLIENT_MONITOR":"/monitor.html",
+	"CLIENT_SLIDE_CONTROL_PANEL":"/slide.html",
+	"CLIENT_SCORE_CONTROL_PANEL":"/score.html",
+	"CLIENT_SCOREBOARD":"/scoreboard.html",
+	"CLIENT_FLIP":"/flip.html",
+	"CLIENT_CONN":"/connection.html",
+	
+	"CLIENT_URL_CONFIG":"/config",
+	"CLIENT_URL_INIT_MONITOR":"/init_monitor",
+	
+	"SLIDE_BLANK":"slideBlank",
+	"SLIDE_HTML":"slideHTML",
+	"SLIDE_LOGO":"<div class=\"text-center\"><img src=\"/logo.png\" width=\"50%\"></div>",
+	"SLIDE_MENU":"slideMenu",
+	
+	"SLIDE_UNREAD":"Mark As SLIDE_UNREAD",
+	"SLIDE_READ":"Mark As SLIDE_READ",
+	
+	"SLIDE_QUIZ":"quiz",
+	"SLIDE_ANSWER":"answer",
+	"SLIDE_COVER":"cover",
+	
+	"DOCX":".docx",
+	"PNG":".png",
+	"JPG":".jpg",
+	"JPEG":".jpeg",
+	"GIF":".gif",
+	"JSON":".json",
+	
+	"SLIDE_LOADING":"<div class=\"spinner\"><div class=\"bounce1\"></div><div class=\"bounce2\"></div><div class=\"bounce3\"></div></div>",
+	
+	"CREDIT":"<div class=\"text-center\"><h3>The CMU-IMC Competition System</h3><h2>Powered by <a href=\"http://labs.sinkanok.com\" title=\"Sinkanok Labs\" target=\"_blank\">labs.sinkanok.com</a></h2><a href=\"http://labs.sinkanok.com\" target=\"_blank\"><img src=\"/sinkanok.gif\" alt=\"Sinkanok Labs\" longdesc=\"http://labs.sinkanok.com\"></a></div>",
+	"":""
+}

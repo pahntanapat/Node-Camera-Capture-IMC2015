@@ -1,0 +1,200 @@
+<!doctype html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>indexUI_answer</title>
+
+<style type="text/css">
+h2, h3 { margin-top:0; }
+form { margin-top: 15px; }
+form > input { margin-right: 15px; }
+#results {padding:0.0625em}
+
+table tbody tr td, table tr td {
+	font-family: "Myriad Pro Regular";
+	font-style: normal;
+	font-weight: normal;
+	color: rgba(0,0,0,1);
+	line-height: 28.8px;
+}
+body {
+	background-color: #fff;
+}
+a{
+	font-size:large;
+}
+#teamName, input{
+	font-family: "Myriad Pro Regular";
+}
+#teamName{
+	font-size:x-large;
+	font-family: "Myriad Pro Regular";
+	font-weight:bold;
+	color:#FFF;
+}
+img{
+	height:50px;
+}
+</style>
+
+<link rel="stylesheet" type="text/css" href="css/foundation.min.css">
+<!--<link rel="stylesheet" type="text/css" href="css/normalize.css">-->
+<link rel="stylesheet" type="text/css" href="css/imc.css">
+<link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
+<link rel="stylesheet" type="text/css" href="myriad-pro/style.css">
+<!-- body , td, th-->
+
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/config"></script>
+
+<script src="webcamjs/webcam.min.js"></script>
+<script src="js/jquery-1.11.3.min.js"></script>
+<script src="js/foundation.min.js"></script>
+<script src="js/vendor/modernizr.js"></script>
+<script src="js/jquery.form.min.js"></script>
+<script src="js/sk_answer.js"></script>
+	
+	<!-- Configure a few settings and attach camera -->
+<script language="JavaScript">
+var socket=null, autoOffWebCam=null, no, teamName;
+function takeSnapshot() {
+	// take snapshot and get image data
+	Webcam.snap(function(data_uri) {
+		// display results in page
+		$('#results').html ('<img class="th" src="'+data_uri+'"/>');
+		
+		// Send it to server
+		if(socket){
+			socket.emit($C.EVENT_RECEIVE_IMG,{
+				picture: data_uri,
+				// add some data to send together here
+				order: no,
+				name: teamName,
+				time: new Date().toLocaleString()
+			});
+		}
+		// End function
+	});
+}
+$(document).ready(function(e){ // if jQuery is loaded.
+	$(this).foundation();
+	
+	$('#formTeamName').submit(function(e) { // if user fills out #name and unfocus textbox #name
+		e.preventDefault();
+		no=$('#no').val().trim();
+		if(no.length<=0){
+			alert('You must fill out No.');
+			return;
+		}else if(parseInt(no)<=0){
+			alert('No. has to be greater than zero.');
+			return;
+		}		
+		teamName=$('#team_name').val().trim();
+		if(teamName.length==0) // Check if input is null, exit
+			return false;
+		
+		$('#teamName').html(no+'. '+teamName);
+		
+		if(!socket){ // if not connect to SIO
+			// Connect Socket.IO
+			socket = io(location.protocol + '//' + location.host + $C.CLIENT_CAMERA);
+			socket.on($C.EVENT_FORCE_CAPT, takeSnapshot);
+			socket.on($C.EVENT_CONN_PING,function(a){
+				socket.emit($C.EVENT_CONN_PING, a, Date());
+			});
+			socket.on('disconnect', function(){
+				$.alertConnect('Disconnection from server');
+			});
+			// Config webcam
+			Webcam.set({
+				width: 320,
+				height: 240,
+				dest_width: 960,
+				dest_height: 720,
+				image_format: 'jpeg',
+				jpeg_quality: 100
+			});
+			$('#btnToggleCamera').removeData('work').click();
+		}
+		$(this).foundation('reveal','close');
+	}).foundation('reveal','open');
+	
+	// when takeSnapshot button is clicked
+	$('#takeSnap').click(takeSnapshot);
+	// when Start/Stop webcam is click
+	$('#btnToggleCamera').click(function(e) {
+	   if($('#cameraDisplay').data('work')=='1'){ // no, stop it!
+			Webcam.reset();
+			$('#cameraDisplay').html('').removeData('work');
+			if(autoOffWebCam!=null){
+				clearTimeout(autoOffWebCam);
+				autoOffWebCam=null;
+			}
+	   }else{ // is webcam not working
+			Webcam.attach('#cameraDisplay'); // yes, let it work
+			$('#cameraDisplay').data('work',1);
+			if($C.AUTO_OFF_WEBCAM_MSEC>0)
+				autoOffWebCam=setTimeout(function(){
+					$('#btnToggleCamera').click();
+					alert('camera off');
+				},$C.AUTO_OFF_WEBCAM_MSEC);
+	   }
+	});
+});
+</script>
+
+</head>
+
+<body text="#000000" link="#FFFF00" vlink="#FFFFFF" alink="#CBCBCB">
+
+<!-- Team Name dialog -->
+<form class="reveal-modal" data-reveal id="formTeamName" role="dialog">
+<fieldset><legend>Team's name</legend>
+    <div>
+      <label>No: <input name="no" type="text" id="no"></label></div>
+    <div>
+      <label>Team's name: <input name="team_name" type="text" id="team_name"></label></div>
+    <div><button type="submit">OK</button></div>
+</fieldset>
+</form>
+
+<table width="1280px" border="0" cellspacing="10" cellpadding="0" style="background: #E4E7ED; color: #FFF;" align="center">
+  <tr>
+    <td width="75%" align="left" valign="middle" bgcolor="#333E5B">&nbsp;&nbsp;<a href="#formTeamName" data-reveal-id="formTeamName" id="teamName">0. TEAM'S NAME</a></td>
+    <!--
+	<div>
+    <input id="saveForm" name="saveForm" class="btTxt submit" type="submit" value="Submit"/>
+</div>
+	-->
+	<td width="12.5%" bgcolor="#3B559A" style="text-align:center" id="btnToggleCamera" ><img src="images/campower.png"></td>
+	<td width="12.5%" bgcolor="#F73A18" style="color:white ;font-family:'Myriad Pro Bold' ; font-size:40px; text-align:center" id="takeSnap">SUBMIT</td>
+  </tr>
+  <tr>
+    <td align="center" valign="top" width="50%"><div id="cameraDisplay" class="row">Input team's name to join the system</div>
+	</td>
+	<td align="center" valign="top" width="50%" colspan="2"><div id="results">Your captured image will appear here...</div>
+  </tr>
+</table>
+
+
+
+
+<!-- Team Name dialog -->
+<form class="reveal-modal" data-reveal id="formTeamName" role="dialog">
+<fieldset><legend>Team's name</legend>
+    <div>
+      <label>No: <input name="no" type="text" id="no"></label></div>
+    <div>
+      <label>Team's name: <input name="team_name" type="text" id="team_name"></label></div>
+    <div><button type="submit">OK</button></div>
+</fieldset>
+</form>
+
+<!-- Scoreboard dialog -->
+<div class="reveal-modal" data-reveal id="dialogScore" role="dialog">
+<div id="scoreboard"></div>
+<a class="close-reveal-modal" aria-label="Close">&#215;</a></div>
+
+</body>
+</html>

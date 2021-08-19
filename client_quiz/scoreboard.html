@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>scoreboardUI</title>
+
+<link rel="stylesheet" type="text/css" href="css/foundation.min.css">
+<!--<link rel="stylesheet" type="text/css" href="css/normalize.css">-->
+<link rel="stylesheet" type="text/css" href="css/imc.css">
+<link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
+<link rel="stylesheet" type="text/css" href="myriad-pro/style.css">
+<!-- body , td, th-->
+<style type="text/css">
+table tbody tr td, table tr td {
+	font-family: "Myriad Pro Regular";
+	font-style: normal;
+	font-weight: normal;
+	color: rgba(0,0,0,1);
+	line-height: 28.8px;
+}
+body {background-color: #fff}
+#scoreboardArea{
+	overflow:auto;
+	padding:0px;
+}
+#scoreboardArea>table{margin:0px}
+#scoreboardArea td, #scoreboardArea th{
+	background:rgba(255, 255, 255, 0.9);
+	color:#000;
+	font-size:30px;
+}
+</style>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/config"></script>
+
+<script src="js/jquery-1.11.3.min.js"></script>
+<script src="js/foundation.min.js"></script>
+<script src="js/vendor/modernizr.js"></script>
+<script src="js/sk_quiz.js"></script>
+
+<script type="text/javascript">
+var socket = io(location.protocol + '//' + location.host + $C.CLIENT_SCOREBOARD);
+$(document).ready(function(e) {
+    $(document).foundation();
+	socket.on($C.EVENT_UPDATE_SCORE,function(numQuiz, score){
+		$('#scoreboardArea').monitorScoreboard($C,numQuiz,score,false);//.find('td, th').css('font-size',320/(4+numQuiz)); // Show the scoreboard to #scoreboardarea tag
+	});
+	socket.on($C.EVENT_CONN_PING,function(a){
+		socket.emit($C.EVENT_CONN_PING, a, Date());
+	});
+	socket.on('disconnect', function(){
+		alert('Disconnection from server');
+	});
+});
+</script>
+
+</head>
+
+<body text="#000000" link="#FFFF00" vlink="#FFFFFF" alink="#CBCBCB" style="background-image:url('images/bg_monitor.png') ;background-position:center" ;background-repeat:no-repeat">
+<table width="800" cellspacing="20" cellpadding="0" align="center" style="background-color:rgba(0,0,0,0) ;border:0px">
+  <tr>
+	<td width="20%" height="150" valign="middle" align="left"><img src="/images/logo-med-scoreboard.png"></td>
+    <td width="60%" height="150" valign="middle" align="center" style="color:#F73A18 ; font-size:72px ;font-family:'Myriad Pro Bold' ;text-align:center">[&nbsp;<span style="color:white ;font-family:'Myriad Pro Regular'">SCOREBOARD</span>&nbsp;]
+	</td>
+	<td width="20%" height="150" valign="middle" align="right"><img src="/images/logo-imc-scoreboard.png"></td>
+  </tr>
+  <tr>
+    <td align="center" valign="top" colspan="3" id="scoreboardArea"><!-- scoreboard area --></td>
+  </tr>
+</table>
+
+</body>
+</html>

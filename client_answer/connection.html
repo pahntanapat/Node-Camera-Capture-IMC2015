@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Connection Status</title>
+
+<link rel="stylesheet" type="text/css" href="css/foundation.min.css">
+<!--<link rel="stylesheet" type="text/css" href="css/normalize.css">-->
+<link rel="stylesheet" type="text/css" href="css/imc.css">
+<link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
+<link rel="stylesheet" type="text/css" href="myriad-pro/style.css">
+<style type="text/css">
+i.lost{color:#666}
+i.risk{color:#F00}
+i.warn{color:#FF0}
+i.healthy{color:#3C0}
+</style>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/config"></script>
+
+<script src="js/jquery-1.11.3.min.js"></script>
+<script src="js/foundation.min.js"></script>
+<script src="js/vendor/modernizr.js"></script>
+<script src="js/sk_answer.js"></script>
+
+<script type="text/javascript">
+var socket = io(location.protocol + '//' + location.host + $C.CLIENT_CONN);
+socket
+$(document).ready(function(e) {
+    socket.on($C.EVENT_CONN_ALERT,function(a){
+		$('#connTable').connTable(a);
+	});
+    socket.on($C.EVENT_CONN_PING,function(a){
+		socket.emit($C.EVENT_CONN_PING, a, Date());
+	});
+	socket.on($C.EVENT_CONN_PING,function(a){
+		socket.emit($C.EVENT_CONN_PING, a, Date());
+	});
+	socket.on('disconnect', function(){
+		$.alertConnect('Disconnection from server');
+	});
+	$('#ping, #reload, #clear').click(function(e) {
+        e.preventDefault();
+		$.post(window.location, {q:$(this).data('q')}, function(data){
+			if($('#ping').is(this))
+				$('#time').html(data);
+			else
+				$('#connTable').connTable(data);
+		},"json");
+    });
+});
+</script>
+</head>
+
+<body><div class="columns small-12"><div class="row">
+<h1>Connection Status</h1><button id="ping" data-q="ping">PING</button><button id="reload" data-q="reload">Reload</button><button id="clear" data-q="clear">Clear</button><span id="time"></span></div><div class="row" id="connTable">
+  <table width="100%" border="0">
+    <tr>
+      <th scope="col"><i class="fa fa-circle-o"></i></th>
+      <th scope="col">IP</th>
+      <th scope="col">Socket</th>
+      <th scope="col">Connects Since</th>
+      <th scope="col">Last Connection</th>
+      <th scope="col">Disconnect</th>
+    </tr>
+    <tr>
+      <td><i class="fa fa-circle"></i></td>
+      <td>IP</td>
+      <td>Tag</td>
+      <td>Start</td>
+      <td>Last</td>
+      <td>Stop</td>
+    </tr>
+  </table>
+</div></div>
+</body>
+</html>

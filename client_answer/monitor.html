@@ -1,0 +1,105 @@
+﻿<!DOCTYPE html>
+<html><head>
+<meta charset="utf8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>Monitor</title>
+<!-- Server-Generated script -->
+<link rel="stylesheet" type="text/css" href="css/foundation.min.css">
+<link rel="stylesheet" type="text/css" href="css/normalize.css">
+<link rel="stylesheet" type="text/css" href="css/imc.css">
+<script src="/init_monitor"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/config"></script>
+
+<script src="js/jquery-1.11.3.min.js"></script>
+<script src="js/foundation.min.js"></script>
+<script src="js/vendor/modernizr.js"></script>
+<script src="js/jquery.form.min.js"></script>
+<script src="js/sk_answer.js"></script>
+	<style>
+#pic > li{
+	display:inline-block;
+	padding:0.125em;
+	border:medium #00F solid;
+}
+#pic img{
+	width:95%;
+	margin-left:auto;
+	margin-right:auto;
+}
+</style>
+	<script>
+	var socket = io(location.protocol + '//' + location.host + $C.CLIENT_MONITOR);
+	function range(){
+		var range=[parseFloat($('#orderFrom').val()),parseFloat($('#orderTo').val())];
+		if(range[0]>range[1]) return [range[1],range[0]];
+		return range;
+	}
+	$(document).ready(function(e){
+		socket.on($C.EVENT_CONN_PING,function(a){
+			socket.emit($C.EVENT_CONN_PING, a, Date());
+		});
+		socket.on('disconnect', function(){
+			$.alertConnect('Disconnection from server');
+		});
+		socket.on($C.EVENT_RECEIVE_IMG, function(quizNo, data){ // When server emit data that receive from a camera.
+			if(quizNo==monitorQuizNo) $('#pic').showIMG(data, range()).order(); // if the showing quiz is equal to server-sent picture, do it;
+		});
+		socket.on($C.EVENT_SET_MONITOR_QUIZ, function(force,quizNo,data){
+		// if admin doesn't force monitor to show and this monitor is Self-Directed Monitor (Work independently), Exit!
+			if(!force && $('#sdm').prop('checked')) return;
+			monitorQuizNo=quizNo;
+			$('#quizNo').html(quizNo);
+			$('#pic').setAllIMG(quizNo, data, range());
+		});
+		$('#btnSelectQNo').click(function(e) {
+            e.preventDefault();
+			monitorQuizNo=parseInt($('#monitorQuizNo').val().trim(),10);
+			$('#quizNo').html(monitorQuizNo);
+			
+			$.post($C.CLIENT_URL_INIT_MONITOR,{monitorQuizNo:monitorQuizNo},function(data){
+				return $('#pic').setAllIMG($('#monitorQuizNo').val(), data, range());
+			},'json');
+        });
+		$('#popupSDM').click(function(e) {
+            e.preventDefault();
+			var w=window.open('','_blank');
+			$(w.document).ready(function(e) {
+                $(w.document).find('body').append('<form>'+$('form').html()+'</form>')
+					.find(':text, input[type="number"]').change(function(e) {
+                		$('#'+$(this).attr('id')).val($(this).val());
+            		}).parents('body').find('#btnSelectQNo, #sdm').click(function(e) {
+						if($(this).attr('id')=='sdm')	$('#sdm').prop('checked',$(this).prop('checked'));
+						else	return $('#btnSelectQNo').click();
+					});
+					w.document.title='Monitor Control Panel';
+					$(window).unload(function(e) {
+                        w.close();
+                    });
+            });
+        });
+		$('#pic').html($C.CREDIT);
+		setTimeout(function(){
+			$('#pic').setAllIMG(true, monitorQuizNo,cameraData);
+			delete cameraData;
+		}, 10000);
+	});
+	</script>
+</head>
+<body>
+<h1 class="hidden-for-small-up">Monitor<small>Quiz No. = <span id="quizNo"></span></small></h1>
+<ul class="small-block-grid-2" id="pic"><li class="text-center"><h3>The CMU-IMC Competition System</h3><h2>&copy; 2015 by <a href="http://labs.sinkanok.com" title="Sinkanok Labs" target="_blank">labs.sinkanok.com</a></h2>
+    <a href="http://labs.sinkanok.com" target="_blank"><img src="/sinkanok.gif" alt="Sinkanok Labs" longdesc="http://labs.sinkanok.com"></a></li></ul>
+<form><fieldset><legend>Control box</legend><div><a href="#sdm" id="popupSDM">Open Control box in Pop-up</a></div><div>
+  <label><input name="sdm" type="checkbox" id="sdm" value="1"> Independent <!-- Self-Directed --> Monitor</label></div>
+  <div class="row">
+   <div class="column medium-4 small-6"><label for="orderFrom">Show team From: </label></div>
+   <div class="column medium-3 small-6"><input type="number" min="0" step="1" id="orderFrom" name="orderFrom"></div>
+   <div class="column small-6 medium-2"><label for="orderTo"> To </label></div>
+   <div class="column small-6 medium-3"><input type="number" min="0" step="1" id="orderTo" name="orderTo"></div>
+   </div><hr>
+   <div class="row">
+    <div class="column small-5"><label for="monitorQuizNo">Select Quiz No to Show: </label></div><div class="small-4 column"><input type="text" id="monitorQuizNo" name="monitorQuizNo"></div><div class="small-3 column"><button type="button" id="btnSelectQNo">Show</button></div>
+    </div></fieldset></form>
+</body>
+</html>

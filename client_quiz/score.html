@@ -1,0 +1,133 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>score editor</title>
+<link rel="stylesheet" type="text/css" href="css/foundation.min.css">
+<link rel="stylesheet" type="text/css" href="css/normalize.css">
+<link rel="stylesheet" type="text/css" href="css/imc.css">
+<style>
+#scoreboard>table img{
+	width:64px;
+}
+#scoreboard{
+	overflow:auto;
+	display:block;
+}
+#scoreboard input[type="text"]{width:3em;}
+</style>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/config"></script>
+
+<script src="js/jquery-1.11.3.min.js"></script>
+<script src="js/jquery.form.min.js"></script>
+<script src="js/foundation.min.js"></script>
+<script src="js/vendor/modernizr.js"></script>
+<script src="js/sk_quiz.js"></script>
+
+<script type="text/javascript">
+var socket = io(location.protocol + '//' + location.host + $C.CLIENT_SCORE_CONTROL_PANEL);
+$(document).ready(function(e) {
+    $(document).foundation();
+	socket.on($C.EVENT_UPDATE_SCORE,function(numQuiz, score, items){
+		$('#scoreboard').edittableScoreboard($C,numQuiz,score,items);
+		$('#numQuiz').val(numQuiz);
+	});
+	socket.on($C.EVENT_UPDATE_MORE_INFO,function(info){
+		$('#moreInfo').html(info);
+	});
+	socket.on($C.EVENT_CONN_ALERT,function(msg){
+		$.alertConnect(msg);
+	});
+	socket.on($C.EVENT_CONN_PING,function(a){
+		socket.emit($C.EVENT_CONN_PING, a, Date());
+	});
+	socket.on('disconnect', function(){
+		$.alertConnect('Disconnection from server');
+	});
+	
+	$('#formScore').submit(function(e) {
+        e.preventDefault();
+		$.post($(this).attr('action'),$(this).serialize(),function(data){$('#scResult').jsonResponse(data);},'json');
+    });
+	$('#btnClearSc').click(function(e) {
+        e.preventDefault();
+		$.post("score.html",{act:'clear'},function(data){$('#result').jsonResponse(data);},'json');
+    });
+	// Backup System
+	$('#chkBackup').click(function(e) {
+        socket.emit($C.EVENT_SET_BACKUP, $(this).prop('checked'));
+    });
+	$('#btnClearBU').click(function(e) {
+        socket.emit($C.EVENT_CLEAR_BACKUP);
+    });
+	$('#act').change(function(e) {
+        switch($(this).val()){
+			case 'uploadBU':
+				$('#backupFile').attr('type','file')
+					.parent().removeClass('hide')
+					.find('label[for="backupFile"]').html('File to upload:');
+				break;
+			case '':
+				$('#backupFile').parent().addClass('hide');break;
+			default:
+				$('#backupFile').attr('type','text')
+					.parent().removeClass('hide')
+					.find('label[for="backupFile"]').html('Path of file on server:');
+				break;
+		}
+		return true;
+    });
+	$('#formBackup').ajaxForm({
+		beforeSubmit:function(){
+			$('#buResult').html('<span class="meter"></span>').addClass('progress round');
+		},
+		uploadProgress:function(e, p, t){
+			$('#buResult>span').css('width',(100*p/t)+'%');
+		},
+		success:function(data){
+			$('#buResult').removeClass('progress round').jsonResponse(data);
+		}
+	});
+});
+</script>
+</head>
+
+<body class="row"><div class="column small-12">
+<h1>Scoreboard editor</h1>
+<form action="score.html" method="post" name="formScore" id="formScore">
+  <fieldset>
+    <legend>Scoreboard</legend>
+    <div>
+    <label for="numQuiz">How many quizzes are there?:<input name="act" type="hidden" value="setScore"></label>
+    <input name="numQuiz" type="number" min="0" id="numQuiz" value="0"></div>
+    <div id="scoreboard"></div>
+    <div><button type="submit">Save</button><button type="reset">Cancel</button><button type="button" id="btnClearSc">Clear scoreboard</button></div>
+    <div id="scResult"></div>
+    <div id="moreInfo" class="alert-box info"></div>
+  </fieldset>
+</form>
+<hr>
+<h2>Backup &amp; Recovery</h2>
+  <fieldset>
+    <legend>Automatic Backup System</legend><div><label><b><input name="chkBackup" type="checkbox" id="chkBackup" value="Score" checked> Automatic backup read/unread status</b></label><button type="button" id="btnClearBU">Clear all backup files</button></div></fieldset>
+<form action="score.html" method="post" enctype="multipart/form-data" name="formBackup" id="formBackup">
+  <fieldset>
+    <legend>Recovery backup file</legend><div>
+      <label>Method to recovery:
+        <select name="act" id="act">
+        <option value="" selected>Please select</option>
+          <option value="loadBU">Load file from backup folder</option>
+          <option value="loadExtBU">Load external files (Full path required)</option>
+          <option value="uploadBU">Upload files</option>
+        </select>
+      </label>
+    </div><div class="hide">
+      <label for="backupFile">Backup:</label>
+      <input type="file" name="backupFile" id="backupFile">
+    </div><div><button type="submit">Save</button><button type="reset">Cancel</button></div>
+  </fieldset>
+</form>
+<div id="buResult"></div>
+</div></body>
+</html>

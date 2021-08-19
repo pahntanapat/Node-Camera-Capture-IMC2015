@@ -1,0 +1,18 @@
+C:\Users\K451LN\AppData\Local\Temporary Projects\WindowsApplication2\bin\Debug\WindowsApplication2.exe
+C:\Users\K451LN\AppData\Local\Temporary Projects\WindowsApplication2\bin\Debug\WindowsApplication2.pdb
+C:\Users\K451LN\AppData\Local\Temporary Projects\WindowsApplication2\bin\Debug\WindowsApplication2.xml
+C:\Users\K451LN\AppData\Local\Temporary Projects\WindowsApplication2\obj\x86\Debug\WindowsApplication2.Form1.resources
+C:\Users\K451LN\AppData\Local\Temporary Projects\WindowsApplication2\obj\x86\Debug\WindowsApplication2.Resources.resources
+C:\Users\K451LN\AppData\Local\Temporary Projects\WindowsApplication2\obj\x86\Debug\WindowsApplication2.vbproj.GenerateResource.Cache
+C:\Users\K451LN\AppData\Local\Temporary Projects\WindowsApplication2\obj\x86\Debug\WindowsApplication2.exe
+C:\Users\K451LN\AppData\Local\Temporary Projects\WindowsApplication2\obj\x86\Debug\WindowsApplication2.xml
+C:\Users\K451LN\AppData\Local\Temporary Projects\WindowsApplication2\obj\x86\Debug\WindowsApplication2.pdb
+E:\PRIME\Test2\WindowsApplication2\WindowsApplication2\obj\x86\Debug\WindowsApplication2.exe
+E:\PRIME\Test2\WindowsApplication2\WindowsApplication2\obj\x86\Debug\WindowsApplication2.xml
+E:\PRIME\Test2\WindowsApplication2\WindowsApplication2\obj\x86\Debug\WindowsApplication2.pdb
+E:\PRIME\Test2\WindowsApplication2\WindowsApplication2\bin\Debug\WindowsApplication2.exe
+E:\PRIME\Test2\WindowsApplication2\WindowsApplication2\bin\Debug\WindowsApplication2.pdb
+E:\PRIME\Test2\WindowsApplication2\WindowsApplication2\bin\Debug\WindowsApplication2.xml
+E:\PRIME\Test2\WindowsApplication2\WindowsApplication2\obj\x86\Debug\WindowsApplication2.Form1.resources
+E:\PRIME\Test2\WindowsApplication2\WindowsApplication2\obj\x86\Debug\WindowsApplication2.Resources.resources
+E:\PRIME\Test2\WindowsApplication2\WindowsApplication2\obj\x86\Debug\WindowsApplication2.vbproj.GenerateResource.Cache

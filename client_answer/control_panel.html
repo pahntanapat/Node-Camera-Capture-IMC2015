@@ -1,0 +1,122 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Admin control panel</title>
+<link rel="stylesheet" type="text/css" href="css/foundation.min.css">
+<link rel="stylesheet" type="text/css" href="css/normalize.css">
+<link rel="stylesheet" type="text/css" href="css/imc.css">
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/config"></script>
+
+<script src="js/jquery-1.11.3.min.js"></script>
+<script src="js/foundation.min.js"></script>
+<script src="js/vendor/modernizr.js"></script>
+<script src="js/jquery.form.min.js"></script>
+<script src="js/sk_answer.js"></script>
+ 	<script>
+	var socket = io(location.protocol + '//' + location.host +$C.CLIENT_ADMIN_CONTROL_PANEL);
+	$(document).ready(function(e) {
+        $('#btnCamQuiz').click(function(e) { // When admin sets quiz no to be recieved images from camera and click set
+            socket.emit($C.EVENT_SET_CAMERA_QUIZ, $('#cameraQuizNo').val());
+        });
+		$('#btnMoQuiz').click(function(e) { // When admin sets quiz no to show images to monitor and click set
+            socket.emit($C.EVENT_SET_MONITOR_QUIZ, $('#sdm').prop('checked'), $('#monitorQuizNo').val());
+        });
+		$('#btnCapture').click(function(e) { // When admin forces all cameras to capture their images by clicking button
+            socket.emit($C.EVENT_FORCE_CAPT);
+        });
+		$('#chkBackup').click(function(e) {
+            socket.emit($C.EVENT_SET_BACK_UP, $(this).prop('checked'));
+        });
+		socket.on($C.EVENT_LOG,function(data){ // When server sends log to page
+			$('#log').append(data+"\n");
+		});
+		socket.on($C.EVENT_CONN_ALERT,function(msg){
+			$.alertConnect(msg);
+		});
+		socket.on($C.EVENT_CONN_PING,function(a){
+			socket.emit($C.EVENT_CONN_PING, a, Date());
+		});
+		socket.on('disconnect', function(){
+			$.alertConnect('Disconnection from server');
+		});
+	// Backup System
+		$('#chkBackup').click(function(e) {
+			socket.emit($C.EVENT_SET_BACKUP, $(this).prop('checked'));
+		});
+		$('#btnClearBU').click(function(e) {
+			socket.emit($C.EVENT_CLEAR_BACKUP);
+		});
+		$('#act').change(function(e) {
+			switch($(this).val()){
+				case 'uploadBU':
+					$('#backupFile').attr('type','file')
+						.parent().removeClass('hide')
+						.find('label[for="backupFile"]').html('File to upload:');
+					break;
+				case '':
+					$('#backupFile').parent().addClass('hide');break;
+				default:
+					$('#backupFile').attr('type','text')
+						.parent().removeClass('hide')
+						.find('label[for="backupFile"]').html('Path of file on server:');
+					break;
+			}
+			return true;
+		});
+		$('#formBackup').ajaxForm({
+			beforeSubmit:function(){
+				$('#buResult').html('<span class="meter"></span>').addClass('progress round');
+			},
+			uploadProgress:function(e, p, t){
+				$('#buResult>span').css('width',(100*p/t)+'%');
+			},
+			success:function(data){
+				$('#buResult').removeClass('progress round').jsonResponse(data);
+			}
+		});
+    });
+	</script>
+</head>
+
+<body>
+<h1>Control panel</h1>
+<h2>Camera control panel</h2>
+<div>
+  <label>Camera Quiz No: 
+<input name="cameraQuizNo" type="text" id="cameraQuizNo"></label><button type="button" id="btnCamQuiz">Set</button></div>
+<div><button type="button" id="btnCapture">Capture</button></div><hr>
+<h2>Monitor control panel</h2>
+<div>
+  <label>Quiz No. to be shown: 
+    <input name="monitorQuizNo" type="text" id="monitorQuizNo"></label></div><div>
+  <label><input name="sdm" type="checkbox" id="sdm" value="1"> 
+  Force Independent <!-- Self-Directed --> Monitor to Show</label> 
+ <button type="button" id="btnMoQuiz">Show</button></div><hr>
+<h2>Backup &amp; Recovery</h2>
+  <fieldset>
+    <legend>Automatic Backup System</legend><div><label><b><input name="chkBackup" type="checkbox" id="chkBackup" value="Score" checked> Automatic backup read/unread status</b></label><button type="button" id="btnClearBU">Clear all backup files</button></div></fieldset>
+<form action="control_panel.html" method="post" enctype="multipart/form-data" name="formBackup" id="formBackup">
+  <fieldset>
+    <legend>Recovery backup file</legend><div>
+      <label>Method to recovery:
+        <select name="act" id="act">
+        <option value="" selected>Please select</option>
+          <option value="loadBU">Load file from backup folder</option>
+          <option value="loadExtBU">Load external files (Full path required)</option>
+          <option value="uploadBU">Upload files</option>
+        </select>
+      </label>
+    </div><div class="hide">
+      <label for="backupFile">Backup:</label>
+      <input type="file" name="backupFile" id="backupFile">
+    </div><div><button type="submit">Save</button><button type="reset">Cancel</button></div>
+  </fieldset>
+</form>
+<div id="buResult"></div><hr>
+<h2>Log</h2>
+<textarea cols="50" rows="10" id="log"></textarea>
+</body>
+</html>

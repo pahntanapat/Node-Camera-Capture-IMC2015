@@ -1,0 +1,32 @@
+@charset "utf-8";
+ul.dir-grid>li>a{
+	width:100%;
+	font-weight:bold;
+	font-size:xx-large;
+	text-align:center;
+}
+h1, h2, h3, h4, h5, h6{font-weight:bolder}
+.bold{font-weight:bold}
+.nav{
+	color:#FFF;
+	font-weight:bold;
+	font-size:larger;
+	padding:0.5em 0.25em;
+}
+.nav a:link, .nav a:visited{color:#8FF}
+.nav a:hover, .nav a:active{color:#FF6}
+thead.text-center td,thead.text-center th{text-align:center}
+
+
+#alertConnection{
+	position:fixed;
+	bottom:2em;
+	right:2em;
+}
+
+#alertConnection>div{
+	border:medium solid #000;
+	border-radius:0.25em;
+	background:#EEE;
+	padding:0.5em;
+}

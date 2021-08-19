@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Flip scoreboard</title>
+<link rel="stylesheet" type="text/css" href="css/foundation.min.css">
+<link rel="stylesheet" type="text/css" href="css/normalize.css">
+<link rel="stylesheet" type="text/css" href="css/imc.css">
+<link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
+<style>
+#score{
+	text-align:center;
+	font-family:"Palatino Linotype", "Book Antiqua", Palatino, serif;
+	font-weight:800;
+	font-size:650px;
+}
+</style>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/config"></script>
+
+<script src="js/jquery-1.11.3.min.js"></script>
+<script src="js/foundation.min.js"></script>
+<script src="js/vendor/modernizr.js"></script>
+<script src="js/sk_quiz.js"></script>
+<script type="text/javascript">
+var no, socket=null;
+$(document).ready(function(e) {
+	$(document).foundation();
+	$('#formTeamName').submit(function(e) {
+		e.preventDefault();
+		no=$('#no').val().trim();
+		if(no.length<=0){
+			alert('You must fill out No.');
+		}else if(parseInt(no)<0){
+			alert('No. has to be greater than or equal to zero.');
+		}else{			
+			if(socket==null){
+				socket = io(location.protocol + '//' + location.host + $C.CLIENT_FLIP);
+				socket.on($C.EVENT_UPDATE_SCORE,function(score){			
+					var sum=0;
+					for(var i in score[no].score){
+						numQuiz=parseFloat(score[no].score[i]);
+						sum+=isNaN(numQuiz)?0:numQuiz;
+					}
+					$('#score').text(sum);
+				});
+				
+				socket.on($C.EVENT_CONN_PING,function(a){
+					socket.emit($C.EVENT_CONN_PING, a, Date());
+				});
+				socket.on('disconnect', function(){
+					alert('Disconnection from server');
+				});
+			}
+			$(this).foundation('reveal','close');
+		}
+    }).foundation('reveal','open');
+});
+</script>
+</head>
+
+<body>
+<div id="score"><!-- Score shown here --></div><!-- Team Name dialog -->
+<form class="reveal-modal" data-reveal id="formTeamName" role="dialog">
+<fieldset><legend>Team's No.</legend>
+    <div><label>No: <input name="no" type="text" id="no"></label></div>
+    <div><button type="submit">OK</button></div>
+</fieldset>
+</form>
+</body>
+</html>

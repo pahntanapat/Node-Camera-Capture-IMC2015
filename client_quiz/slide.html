@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>Slideshow Controller</title>
+<link rel="stylesheet" type="text/css" href="css/foundation.min.css">
+<link rel="stylesheet" type="text/css" href="css/normalize.css">
+<link rel="stylesheet" type="text/css" href="css/imc.css">
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/config"></script>
+
+<script src="js/jquery-1.11.3.min.js"></script>
+<script src="js/foundation.min.js"></script>
+<script src="js/vendor/modernizr.js"></script>
+<script src="js/jquery.form.min.js"></script>
+<script src="js/sk_quiz.js"></script>
+
+<script type="text/javascript">
+var socket = io(location.protocol + '//' + location.host + $C.CLIENT_SLIDE_CONTROL_PANEL), quizSet;
+function error(msg){
+	return $('#errorBox>pre').html(msg);
+}
+function loadOverlay(quizNo){
+		$('#globOvl, #quizOvl').html($C.SLIDE_LOADING);
+		// load list of overlay
+		$.post('slide.html',{now:Date(), 'quiz_set':quizSet, 'quiz_no':quizNo},function(data){
+			$('#globOvl').chkList($C.OVERLAY_FOLDER, data.globalOverlay);
+			$('#quizOvl').chkList($C.QUIZ_FOLDER+'/'+data.qOvlId+'/'+$C.OVERLAY_FOLDER, data.quizOverlay);
+			$('#overlayTab>form').tickChkOvl(data.overlayIMG);
+			$('input[name="qOvlId"]').val(data.qOvlId);
+		},'json');
+}
+$(document).ready(function(e) {
+	$(document).foundation().on('click','a.quizSet',function(e){
+		e.preventDefault();
+		quizSet=$(this).data('id');
+		$('#quizSet').html(quizSet);
+		$.post('slide.html',{now:Date(),quiz_set:quizSet},function(data){
+			$('#listSlide').html('').addList('quiz',data.quizSet).setReadStatus(quizSet,data.readStatus);
+			$('#listQuizSet').foundation('reveal','close');
+		},'json');
+	}).on('click','a.quiz',function(e){
+		e.preventDefault();
+		 loadOverlay($(this).data('id'));
+		error('No error message');
+		$('#quizNo').html($(this).data('id'));
+		
+		$('#dialogSlideShow').foundation('reveal','open');
+	});
+	
+	$('.selectQ').click(function(e) {
+        var act=[null, quizSet, $('#quizNo').html()];
+		switch($(this).data('type')){
+			case 'cover':
+				$('#overlayTab button[type="button"]').click();
+				act[0]=$C.SLIDE_COVER;
+				break;
+			case 'question':
+				act[0]=$C.SLIDE_QUIZ;
+				break;
+			case 'answer':
+				act[0]=$C.SLIDE_ANSWER;
+				break;
+			case 'unread':
+				act[0]=$C.SLIDE_UNREAD;
+				break;
+			case 'read':
+				act[0]=$C.SLIDE_READ;
+				break;
+			case 'logo':
+				act[0]=$C.SLIDE_LOGO;
+				break;
+			case 'blank':
+				act[0]=$C.SLIDE_BLANK;
+				break;
+			case 'credit':
+				$('#txtCustomHTML').val($C.CREDIT);
+			case 'html':
+				act[0]=$C.SLIDE_HTML;
+				act[1]=$('#txtCustomHTML').val();
+				break;
+			case 'menu':
+				act[0]=$C.SLIDE_MENU;
+				act[1]=$('#listSlide').outerHTML();
+				break;
+		}
+		socket.emit($C.EVENT_CHANGE_SLIDE,act[0],act[1],act[2]);
+		return false;
+    });
+	
+	$('#btnChangeQuizSet').click(function(e) {
+        $.post('slide.html', {now: Date()}, function(res){
+			$('#listQS').html('').addList('quizSet',res.quizSet);
+			$('#listQuizSet').foundation('reveal','open');
+		},"json");
+    });
+	// Show Custom HTML Form
+	$('#showHTML').click(function(e) {
+        $('#formHTML').foundation('reveal','open');
+		return false;
+    });
+	
+	// Backup System
+	$('#chkBackup').click(function(e) {
+        socket.emit($C.EVENT_SET_BACKUP, $(this).prop('checked'));
+    });
+	$('#btnClearBU').click(function(e) {
+        socket.emit($C.EVENT_CLEAR_BACKUP);
+    });
+	$('#act').change(function(e) {
+        switch($(this).val()){
+			case 'uploadBU':
+				$('#backupFile').attr('type','file')
+					.parent().removeClass('hide')
+					.find('label[for="backupFile"]').html('File to upload:');
+				break;
+			case '':
+				$('#backupFile').parent().addClass('hide');break;
+			default:
+				$('#backupFile').attr('type','text')
+					.parent().removeClass('hide')
+					.find('label[for="backupFile"]').html('Path of file on server:');
+				break;
+		}
+		return true;
+    });
+	$('#formBackup').ajaxForm({
+		beforeSubmit:function(){
+			$('#buResult').html('<span class="meter"></span>').addClass('progress round');
+		},
+		uploadProgress:function(e, p, t){
+			$('#buResult>span').css('width',(100*p/t)+'%');
+		},
+		success:function(data){
+			$('#buResult').removeClass('progress round').jsonResponse(data);
+		}
+	});
+	
+	// Timer Form
+	$('.btnSet, #btnResume, #btnPause, #btnClear').click(function(e) {
+        e.preventDefault();
+		var act=$.map([parseInt($('#time_m').val(),10),parseInt($('#time_s').val(),10),0],
+			function(i){
+				return isNaN(i)?0:i;
+			});
+		
+		switch(true){
+			case $(this).is('.btnSet'):
+				act[2]=$C.TIMER_START;
+				break;
+			case $(this).is('#btnResume'):
+				act[2]=$C.TIMER_RESUME;
+				break;
+			case $(this).is('#btnPause'):
+				act[2]=$C.TIMER_PAUSE;
+				break;
+			case $(this).is('#btnClear'):
+				act[2]=$C.TIMER_CLEAR;
+				break;
+			default: return;
+		}
+		socket.emit($C.EVENT_UPDATE_TIMER,act[2],act[1]+60*act[0]);
+    });
+	
+	// Overlay Form
+	$('#overlayTab>form').ajaxForm({
+		beforeSubmit: function(){
+			error('');
+		},
+		dataType:  'json', 
+		success:function(data){
+			$('#errorBox>pre').append(data.msg);
+		}
+    }).find('button[type="button"]').click(function(e){
+		$('#globOvl, #quizOvl').html($C.SLIDE_LOADING);
+		setTimeout(function(){
+			loadOverlay($('#quizNo').text());
+		},500);
+	});
+	
+	// Socket fn
+	socket.on($C.EVENT_ERROR_MSG,error);
+	socket.on($C.EVENT_UPDATE_READ_STATUS, function(readStatus){
+		$('#listSlide').setReadStatus(quizSet,readStatus);
+	});
+	socket.on($C.EVENT_UPDATE_TIMER,function(time){
+		$('#spanTimer').toTimer(time);
+	});
+	socket.on($C.EVENT_PRESET_TIMER,function(time){
+		time=isNaN(time)?time.split(':',2):[time];
+		$.map(time,function(v, i){
+			time[i]=isNaN(v)?0:parseFloat(v);
+		});
+		if(time.length==1) time[1]=0;
+		time[1]+=(time[0]-Math.floor(time[0]))*60.0;
+		time[0]=Math.floor(time[0]);
+		
+		$('#time_m').val(time[0]);
+		$('#time_s').val(time.length>1?time[1]:0);
+	});
+	socket.on($C.EVENT_UPDATE_MORE_INFO,function(info){
+		$('#moreInfo').html(info);
+	});
+	socket.on($C.EVENT_CONN_ALERT,function(msg){
+		$.alertConnect(msg);
+	});
+	socket.on($C.EVENT_CONN_PING,function(a){
+		socket.emit($C.EVENT_CONN_PING, a, Date());
+	});
+	socket.on('disconnect', function(){
+		$.alertConnect('Disconnection from server');
+	});
+});
+</script>
+</head>
+<body class="row">
+<div class="small-12 column">
+
+<h1>Slide controller</h1><hr>
+<div class="row"><div class="small-6 medium-5 large-4 columns"><h2>ชุดคำถาม: <span id="quizSet"></span></h2></div>
+  <div class="small-6 medium-7 large-8 columns"><button id="btnChangeQuizSet" type="button">เปลี่ยนชุดคำถาม</button></div></div>
+<!-- Dialog เลือกชุดคำถาม -->
+<div id="listQuizSet" class="reveal-modal" data-reveal><a class="close-reveal-modal" aria-label="Close">&#215;</a><h3>เลือกชุดคำถาม</h3><ul id="listQS" class="small-block-grid-3 dir-grid button-group"></ul></div>
+
+<div id="dialogSlideShow" class="reveal-modal" data-reveal><a class="close-reveal-modal" aria-label="Close">&#215;</a><h3>คำถามข้อที่ <span id="quizNo"></span></h3><p>กรุณาอ่านก่อนกด!!</p><div class="button-bar"><a href="#blank" data-type="blank" class="selectQ button">Show Blank</a><button type="button" data-type="cover" class="selectQ">Show Cover</button><button type="button" data-type="question" class="selectQ">Show Question</button><button type="button" data-type="answer" class="selectQ">Show Answer</button><button type="button" data-type="unread" class="selectQ">Mark as Unread</button><button type="button" data-type="read" class="selectQ">Mark as Read</button></div>
+
+<!-- <ul class="tabs" data-tab><li class="tab-title active"><a href="#timerTab">Timer</a></li><li class="tab-title"><a href="#overlayTab">Overlay</a></li></ul> -->
+
+<div class="-tabs-content">
+<form class="content active" id="timerTab"><fieldset><legend>Timer</legend><div><b>Now: </b><span id="spanTimer">00:00</span></div>
+<div class="row"><div class="column small-12 medium-2 bold">Time: </div><div class="column small-4 medium-3"><input name="time_m" type="number" id="time_m" min="0"> </div><div class="column small-2"> min </div><div class="column small-4 medium-3"><input name="time_s" type="number" id="time_s" min="0"> </div><div class="column small-2"> s</div></div>
+
+<div><button type="submit" class="btnSet">Set &amp; Start</button><button type="button" id="btnResume">Resume</button>
+<button type="button" id="btnPause">Pause</button><button id="btnClear" type="reset">Clear</button></div></fieldset></form>
+<div  id="overlayTab" class="content"><form action="slide.html" method="post"><div class="row"><div class="column medium-6 small-12"><fieldset><legend>Global Overlay</legend><div id="globOvl"></div></fieldset></div>
+<div class="column medium-6 small-12"><fieldset><legend>Quiz's Overlay</legend><div id="quizOvl"></div></fieldset></div>
+<div class="column small-12"><a href="#overlayTab" class="btnSet button alert">Set &amp; Start Timer</a><input name="act" type="hidden" value="overlay"><input name="qOvlId" type="hidden">
+  <button type="submit">Set</button><button type="reset">Clear</button><button type="button">Reset</button></div>
+</div></form></div>
+
+<div id="errorBox" data-alert class="alert alert-box"><pre>No Error Message</pre></div>
+<div id="moreInfo" class="alert-box info"></div>
+</div>
+<!-- End tab -->
+</div><!-- end dialog -->
+
+<hr>
+<div><h4>Preset slides</h4>
+<ul class="dir-grid-std">
+  <li><a href="#menu" data-type="menu" class="selectQ">Menu</a></li>
+  <li><a href="#logo" data-type="logo" class="selectQ">Logo</a></li>
+  <li><a href="#blank" data-type="blank" class="selectQ">Blank</a></li>
+  <li><a href="#formHTML" id="showHTML">HTML</a></li>
+</ul>
+<form id="formHTML" class="reveal-modal" data-reveal><a class="close-reveal-modal" aria-label="Close">&#215;</a><fieldset><legend>Custom HTML tag</legend><div>
+  <label>Custom HTML: <textarea name="txtCustomHTML" rows="10" id="txtCustomHTML"></textarea></label></div><div><button type="submit" class="selectQ" data-type="html">Set</button><button type="reset">Clear</button><button type="button" class="selectQ" data-type="credit">Show Credit</button></div></fieldset></form>
+  
+<hr><h4>Quiz slides</h4>
+<ul id="listSlide" class="dir-grid-std"></ul>
+<hr>
+<h2>Backup &amp; Recovery</h2>
+  <fieldset>
+    <legend>Automatic Backup System</legend><div><label><b><input name="chkBackup" type="checkbox" id="chkBackup" value="Score" checked> Automatic backup read/unread status</b></label><button type="button" id="btnClearBU">Clear all backup files</button></div></fieldset>
+<form action="slide.html" method="post" enctype="multipart/form-data" name="formBackup" id="formBackup">
+  <fieldset>
+    <legend>Recovery backup file</legend><div>
+      <label>Method to recovery:
+        <select name="act" id="act">
+        <option value="" selected>Please select</option>
+          <option value="loadBU">Load file from backup folder</option>
+          <option value="loadExtBU">Load external files (Full path required)</option>
+          <option value="uploadBU">Upload files</option>
+        </select>
+      </label>
+    </div><div class="hide">
+      <label for="backupFile">Backup:</label>
+      <input type="file" name="backupFile" id="backupFile">
+    </div><div><button type="submit">Save</button><button type="reset">Cancel</button></div>
+  </fieldset>
+</form>
+<div id="buResult"></div>
+<!-- end of body -->
+</div>
+</div></body>
+</html>

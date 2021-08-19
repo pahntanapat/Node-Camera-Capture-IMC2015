@@ -1,0 +1,30 @@
+{
+	"WWW_FOLDER":"client_answer",
+	"SHARED_WWW_FOLDER":"client_shared",
+	"UPLOAD_FOLDER":"upload",
+	"BACKUP_ANSWER_FOLDER":"backup/answer",
+	
+	"AUTO_OFF_WEBCAM_MSEC":0,
+	
+	"EVENT_RECEIVE_IMG":"rIMG",
+	"EVENT_SET_MONITOR_QUIZ":"setMnQuiz",
+	"EVENT_SET_CAMERA_QUIZ":"setCRQuiz",
+	"EVENT_SET_BACKUP":"setBackUp",
+	"EVENT_CLEAR_BACKUP":"clearBackup",
+	"EVENT_FORCE_CAPT":"forceCapt",
+	"EVENT_LOG":"log",
+	
+	"EVENT_CONN_PING":"connPing",
+	"EVENT_CONN_ALERT":"connAlert",
+	
+	"CLIENT_CAMERA":"/index.html",
+	"CLIENT_MONITOR":"/monitor.html",
+	"CLIENT_ADMIN_CONTROL_PANEL":"/control_panel.html",
+	"CLIENT_CONN":"/connection.html",
+	
+	"CLIENT_URL_CONFIG":"/config",
+	"CLIENT_URL_INIT_MONITOR":"/init_monitor",
+	
+	"CREDIT":"<div class=\"text-center\"><h3>The CMU-IMC Competition System</h3><h2>Powered by <a href=\"http://labs.sinkanok.com\" title=\"Sinkanok Labs\" target=\"_blank\">labs.sinkanok.com</a></h2><a href=\"http://labs.sinkanok.com\" target=\"_blank\"><img src=\"/sinkanok.gif\" alt=\"Sinkanok Labs\" longdesc=\"http://labs.sinkanok.com\"></a></div>",
+	"":""
+}

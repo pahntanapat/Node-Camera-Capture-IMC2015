@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>indexUI</title>
+
+<link rel="stylesheet" type="text/css" href="css/foundation.min.css">
+<!--<link rel="stylesheet" type="text/css" href="css/normalize.css">-->
+<link rel="stylesheet" type="text/css" href="css/imc.css">
+<link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
+<link rel="stylesheet" type="text/css" href="myriad-pro/style.css">
+<!-- body , td, th-->
+<style type="text/css">
+table tbody tr td, table tr td {
+	font-family: "Myriad Pro Regular";
+	font-style: normal;
+	font-weight: normal;
+	color: rgba(0,0,0,1);
+	line-height: 28.8px;
+}
+body {
+	background-color: #fff;
+}
+a{
+	font-size:large;
+}
+#slide, #slide *{
+	overflow:auto;
+	padding:4px;
+	font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+	font-size: 28px;
+	font-style: normal;
+	font-variant: normal;
+	font-weight: normal;
+}
+<!--
+	overflow:auto;
+	padding:4px;
+	font-family:Verdana, Geneva, sans-serif;
+	font-size:28px;
+
+-->
+#teamName, input{
+	font-family: "Myriad Pro Regular";
+}
+#teamName{
+	font-size:x-large;
+	font-family: "Myriad Pro Regular";
+	font-weight:bold;
+	color:#FFE100;
+}
+</style>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/config"></script>
+
+<script src="js/jquery-1.11.3.min.js"></script>
+<script src="js/foundation.min.js"></script>
+<script src="js/vendor/modernizr.js"></script>
+<script src="js/sk_quiz.js"></script>
+
+<script type="text/javascript">
+var teamName, no, socket=null;
+$(document).ready(function(e) {
+	$(document).foundation();
+	$('#formTeamName').submit(function(e) {
+		e.preventDefault();
+		no=$('#no').val().trim();
+		if(no.length<=0){
+			alert('You must fill out No.');
+		}else if(parseInt(no)<=0){
+			alert('No. has to be greater than zero.');
+		}else{
+			teamName=$('#team_name').val().trim();
+			$('#teamName').html(no+'. '+teamName);
+			
+			if(socket==null){
+				socket = io(location.protocol + '//' + location.host + $C.CLIENT_TABLET);
+				socket.on($C.EVENT_CHANGE_SLIDE, function(data){
+					$('#slide').html(data);
+				});
+				socket.on($C.EVENT_UPDATE_TIMER,function(time){
+					$('#divTimer').toTimer(time);
+				});
+				socket.on($C.EVENT_SET_OVERLAY,function(html){
+					$('#overlay').html(html);
+				});
+				socket.on($C.EVENT_UPDATE_SCORE,function(numQuiz, score){
+					// Get items' icons from table row
+					$('#spanItem').html($('#scoreboard').monitorScoreboard($C,numQuiz,score,true).find('#tr_'+no+'>td.tdIMG').html());
+					
+					$('#teamScore').text($('#blockSumScore').toSumScore(score)[no]);
+				});
+				socket.on($C.EVENT_CONN_PING,function(a){
+					socket.emit($C.EVENT_CONN_PING, a, Date());
+				});
+				socket.on('disconnect', function(){
+					$.alertConnect('Disconnection from server');
+				});
+			}
+			socket.emit($C.EVENT_SET_TEAM_NAME, no, teamName);
+			$(this).foundation('reveal','close');
+		}
+    }).foundation('reveal','open');
+});
+</script>
+
+</head>
+
+<body text="#000000" link="#FFFF00" vlink="#FFFFFF" alink="#CBCBCB">
+<table width="1024px" border="0" cellspacing="5" cellpadding="0" style="background: #E4E7ED; color: #F3116C;" align="center">
+  <tr>
+    <td width="40%" colspan="2" align="left" valign="middle" bgcolor="#2F447C"><a href="#formTeamName" data-reveal-id="formTeamName" id="teamName">0. TEAM'S NAME</a></td>
+    <td width="20%" rowspan="2" align="center" valign="middle" bgcolor="#FFFFFF" id="divTimer">00:00</td>
+    <td width="40%" rowspan="2" bgcolor="#333E5B"><ul class="small-block-grid-4" id="blockSumScore"><!-- sum scores shown in block are here.--></ul></td>
+  </tr>
+  <tr>
+    <td width="20%" align="left" valign="bottom" bgcolor="333E5B" style="color:#5F7ED0 ;font-size:24px">score &nbsp;&nbsp;&nbsp; <span id="teamScore" data-reveal-id="dialogScore" style="color:#FFF  ;font-size:36px; font-weight:bold">0.0</span><!--score--></td>
+	
+    <td width="20%" align="left" valign="middle" bgcolor="333E5B"><span id="spanItem"><!--Items--><img src="items/powerplus.png" width="32px"> <img src="/items/powerup.png" width="32px"> <img src="/items/takearisk.png" width="32px"></span></td>
+  </tr>
+  <tr>
+    <td colspan="4" align="left" valign="top"><div id="slide" class="text-justify"><!-- Content of slide shown here --></div></td>
+  </tr>
+  <tr>
+    <td colspan="4" align="left" valign="top"><div class="overlay-parent"><div id="overlay"><!-- Overlaying contents are here. --></div></div></td>
+  </tr>
+</table>
+
+<!-- Team Name dialog -->
+<form class="reveal-modal" data-reveal id="formTeamName" role="dialog">
+<fieldset><legend>Team's name</legend>
+    <div>
+      <label>No: <input name="no" type="text" id="no"></label></div>
+    <div>
+      <label>Team's name: <input name="team_name" type="text" id="team_name"></label></div>
+    <div><button type="submit">OK</button></div>
+</fieldset>
+</form>
+
+<!-- Scoreboard dialog -->
+<div class="reveal-modal" data-reveal id="dialogScore" role="dialog">
+<div id="scoreboard"></div>
+<a class="close-reveal-modal" aria-label="Close">&#215;</a></div>
+
+</body>
+</html>
